@@ -129,7 +129,7 @@ public class ChatMessageService {
     private void deleteSessionMessagesFromUser(Long sessionId, String userId) {
         log.info("Deleting all messages for session: {} and from user: {}", sessionId , userId);
 
-        messageRepository.deleteByChatSessionIdAndUserId(sessionId);
+        messageRepository.deleteByChatSessionIdAndUserId(sessionId,userId);
         log.info("Deleted all messages for session: {} and from user: {}", sessionId, userId);
     }
 
