@@ -81,4 +81,62 @@ public class ChatMessageService {
                 .last(messagePage.isLast())
                 .build();
     }
+
+
+    @Transactional(readOnly = true)
+    public List<MessageResponse> getSessionMessages(Long sessionId, String userId) {
+        log.info("Retrieving messages for session: {} and user: {}", sessionId, userId);
+
+        List<ChatMessage> messages = messageRepository.findBySessionIdAndUserIdOrderByCreatedAtAsc(sessionId, userId);
+        return messages.stream()
+                .map(messageMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<MessageResponse> getSessionMessages(Long sessionId, String userId, int page, int size) {
+        log.info("Retrieving paginated messages for session: {}, user: {}, page: {}, size: {}", sessionId, userId, page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ChatMessage> messagePage = messageRepository.findBySessionIdAndUserIdOrderByCreatedAtAsc(sessionId, userId, pageable);
+
+        List<MessageResponse> content = messagePage.getContent().stream()
+                .map(messageMapper::toDto)
+                .collect(Collectors.toList());
+
+        return PagedResponse.<MessageResponse>builder()
+                .content(content)
+                .page(messagePage.getNumber())
+                .size(messagePage.getSize())
+                .totalElements(messagePage.getTotalElements())
+                .totalPages(messagePage.getTotalPages())
+                .first(messagePage.isFirst())
+                .last(messagePage.isLast())
+                .build();
+    }
+
+    public void deleteMessage(Long sessionId, String userId) {
+        if(sessionId != null){
+            if(userId != null){
+                deleteSessionMessagesFromUser(sessionId, userId);
+            }else {
+                deleteSessionMessages(sessionId);
+            }
+        }
+
+    }
+
+    private void deleteSessionMessagesFromUser(Long sessionId, String userId) {
+        log.info("Deleting all messages for session: {} and from user: {}", sessionId , userId);
+
+        messageRepository.deleteByChatSessionIdAndUserId(sessionId);
+        log.info("Deleted all messages for session: {} and from user: {}", sessionId, userId);
+    }
+
+    public void deleteSessionMessages(Long sessionId) {
+        log.info("Deleting all messages for session: {}", sessionId);
+
+        messageRepository.deleteByChatSessionId(sessionId);
+        log.info("Deleted all messages for session: {}", sessionId);
+    }
 }

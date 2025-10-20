@@ -71,4 +71,54 @@ public class ChatMessageController {
         PagedResponse<MessageResponse> messages = messageService.getSessionMessages(sessionId, page, size);
         return ResponseEntity.ok(messages);
     }
+
+    @GetMapping("/session/{sessionId}/user/{userId}")
+    @Operation(summary = "Get messages for a session with user validation", description = "Retrieves messages for a session ensuring user ownership")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Messages retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Session not found or user not authorized"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<List<MessageResponse>> getSessionMessagesWithUser(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "User ID") @PathVariable String userId) {
+        log.info("Retrieving messages for session: {} and user: {}", sessionId, userId);
+        List<MessageResponse> messages = messageService.getSessionMessages(sessionId, userId);
+        return ResponseEntity.ok(messages);
+    }
+
+    @GetMapping("/session/{sessionId}/user/{userId}/paginated")
+    @Operation(summary = "Get paginated messages for a session with user validation", description = "Retrieves paginated messages for a session ensuring user ownership")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Messages retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Session not found or user not authorized"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<PagedResponse<MessageResponse>> getSessionMessagesWithUserPaginated(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "User ID") @PathVariable String userId,
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size) {
+        log.info("Retrieving paginated messages for session: {}, user: {}, page: {}, size: {}", sessionId, userId, page, size);
+        PagedResponse<MessageResponse> messages = messageService.getSessionMessages(sessionId, userId, page, size);
+        return ResponseEntity.ok(messages);
+    }
+
+    @DeleteMapping("/{sessionId}/user/{userId}")
+    @Operation(summary = "Delete a session", description = "Deletes a chat session and all its messages")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Session deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Session not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<Void> deleteMessages(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "User ID") @PathVariable String userId) {
+        log.info("Deleting session: {} for user: {}", sessionId, userId);
+        messageService.deleteMessage(sessionId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }
