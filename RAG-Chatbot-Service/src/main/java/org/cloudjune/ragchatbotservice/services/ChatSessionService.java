@@ -1,6 +1,8 @@
 package org.cloudjune.ragchatbotservice.services;
 
+import jakarta.validation.Valid;
 import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
+import org.cloudjune.ragchatbotservice.data.dtos.UpdateSessionRequest;
 import org.cloudjune.ragchatbotservice.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -83,5 +85,36 @@ public class ChatSessionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
 
         return sessionMapper.toDto(session);
+    }
+
+    public SessionResponse updateSession(Long sessionId, String userId, UpdateSessionRequest request) {
+        log.info("Updating session: {} for user: {}", sessionId, userId);
+
+        ChatSession session = sessionRepository.findByIdAndUserId(sessionId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
+
+        if (request.getTitle() != null) {
+            session.setTitle(request.getTitle());
+        }
+
+        if (request.getIsFavorite() != null) {
+            session.setIsFavorite(request.getIsFavorite());
+        }
+
+        ChatSession updatedSession = sessionRepository.save(session);
+        log.info("Updated session: {}", sessionId);
+
+        return sessionMapper.toDto(updatedSession);
+    }
+
+    public void deleteSession(Long sessionId, String userId) {
+        log.info("Deleting session: {} for user: {}", sessionId, userId);
+
+        if (!sessionRepository.existsByIdAndUserId(sessionId, userId)) {
+            throw new ResourceNotFoundException("Session not found with id: " + sessionId);
+        }
+
+        sessionRepository.deleteByIdAndUserId(sessionId, userId);
+        log.info("Deleted session: {}", sessionId);
     }
 }

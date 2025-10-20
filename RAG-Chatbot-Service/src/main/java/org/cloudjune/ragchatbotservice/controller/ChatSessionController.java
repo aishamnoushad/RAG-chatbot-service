@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cloudjune.ragchatbotservice.data.dtos.CreateSessionRequest;
 import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
 import org.cloudjune.ragchatbotservice.data.dtos.SessionResponse;
+import org.cloudjune.ragchatbotservice.data.dtos.UpdateSessionRequest;
 import org.cloudjune.ragchatbotservice.services.ChatSessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,4 +87,40 @@ public class ChatSessionController {
         SessionResponse session = sessionService.getSession(sessionId, userId);
         return ResponseEntity.ok(session);
     }
+
+
+    @PutMapping("/{sessionId}/user/{userId}")
+    @Operation(summary = "Update a session", description = "Updates a chat session (rename, mark/unmark favorite)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Session updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Session not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<SessionResponse> updateSession(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "User ID") @PathVariable String userId,
+            @Valid @RequestBody UpdateSessionRequest request) {
+        log.info("Updating session: {} for user: {}", sessionId, userId);
+        SessionResponse session = sessionService.updateSession(sessionId, userId, request);
+        return ResponseEntity.ok(session);
+    }
+
+    @DeleteMapping("/{sessionId}/user/{userId}")
+    @Operation(summary = "Delete a session", description = "Deletes a chat session and all its messages")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Session deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Session not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<Void> deleteSession(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "User ID") @PathVariable String userId) {
+        log.info("Deleting session: {} for user: {}", sessionId, userId);
+        sessionService.deleteSession(sessionId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.lang.ScopedValue;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -23,3 +23,9 @@ public interface ChatSessionRepository extends JpaRepository<ChatSession, Long> 
 
     Optional<ChatSession> findByIdAndUserId(Long id, String userId);
 
+    void deleteByIdAndUserId(Long id, String userId);
+
+    boolean existsByIdAndUserId(Long sessionId, String userId);
+
+
+}
