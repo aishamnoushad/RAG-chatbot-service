@@ -1,9 +1,22 @@
 services:
   postgres:
     image: 'postgres:latest'
+    # These environment variables are applied ONLY on first init (when the data dir is empty)
+    # If you change them later, run: docker compose down -v  (to remove the volume) and then up again
     environment:
-      - 'POSTGRES_DB=rag-chat-db'
-      - 'POSTGRES_PASSWORD=rag@123'
-      - 'POSTGRES_USER=raguser'
+      - 'POSTGRES_DB=${POSTGRES_DB:-rag-chat-db}'
+      - 'POSTGRES_USER=${POSTGRES_USER:-raguser}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-rag@123}'
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-raguser} -d ${POSTGRES_DB:-rag-chat-db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:

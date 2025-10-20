@@ -1,6 +1,6 @@
 package org.cloudjune.ragchatbotservice.services;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudjune.ragchatbotservice.data.dtos.CreateSessionRequest;
@@ -9,6 +9,9 @@ import org.cloudjune.ragchatbotservice.data.entities.ChatSession;
 import org.cloudjune.ragchatbotservice.data.mapper.ChatSessionMapper;
 import org.cloudjune.ragchatbotservice.data.repositories.ChatSessionRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +35,15 @@ public class ChatSessionService {
         log.info("Created chat session with ID: {}", savedSession.getId());
 
         return sessionMapper.toDto(savedSession);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SessionResponse> getUserSessions(String userId) {
+        log.info("Retrieving sessions for user: {}", userId);
+
+        List<ChatSession> sessions = sessionRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        return sessions.stream()
+                .map(sessionMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
