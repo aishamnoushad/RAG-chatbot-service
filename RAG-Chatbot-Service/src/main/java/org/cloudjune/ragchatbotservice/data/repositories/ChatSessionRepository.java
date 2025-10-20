@@ -17,4 +17,6 @@ public interface ChatSessionRepository extends JpaRepository<ChatSession, Long> 
 
 
     List<ChatSession> findByUserIdOrderByUpdatedAtDesc(String userId);
+
+    Page<ChatSession> findByUserIdOrderByUpdatedAtDesc(String userId, Pageable pageable);
 }

@@ -1,5 +1,9 @@
 package org.cloudjune.ragchatbotservice.services;
 
+import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,5 +49,28 @@ public class ChatSessionService {
         return sessions.stream()
                 .map(sessionMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+
+    @Transactional(readOnly = true)
+    public PagedResponse<SessionResponse> getUserSessions(String userId, int page, int size) {
+        log.info("Retrieving paginated sessions for user: {}, page: {}, size: {}", userId, page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ChatSession> sessionPage = sessionRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable);
+
+        List<SessionResponse> content = sessionPage.getContent().stream()
+                .map(sessionMapper::toDto)
+                .collect(Collectors.toList());
+
+        return PagedResponse.<SessionResponse>builder()
+                .content(content)
+                .page(sessionPage.getNumber())
+                .size(sessionPage.getSize())
+                .totalElements(sessionPage.getTotalElements())
+                .totalPages(sessionPage.getTotalPages())
+                .first(sessionPage.isFirst())
+                .last(sessionPage.isLast())
+                .build();
     }
 }
