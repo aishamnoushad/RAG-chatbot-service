@@ -14,6 +14,9 @@ import org.cloudjune.ragchatbotservice.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -41,5 +44,15 @@ public class ChatMessageService {
         log.info("Added message with ID: {} to session: {}", savedMessage.getId(), request.getSessionId());
 
         return messageMapper.toDto(savedMessage);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MessageResponse> getSessionMessages(Long sessionId) {
+        log.info("Retrieving messages for session: {}", sessionId);
+
+        List<ChatMessage> messages = messageRepository.findByChatSessionIdOrderByCreatedAtAsc(sessionId);
+        return messages.stream()
+                .map(messageMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
