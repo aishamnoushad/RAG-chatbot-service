@@ -1,6 +1,7 @@
 package org.cloudjune.ragchatbotservice.services;
 
 import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
+import org.cloudjune.ragchatbotservice.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,5 +73,15 @@ public class ChatSessionService {
                 .first(sessionPage.isFirst())
                 .last(sessionPage.isLast())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public SessionResponse getSession(Long sessionId, String userId) {
+        log.info("Retrieving session: {} for user: {}", sessionId, userId);
+
+        ChatSession session = sessionRepository.findByIdAndUserId(sessionId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
+
+        return sessionMapper.toDto(session);
     }
 }

@@ -70,4 +70,20 @@ public class ChatSessionController {
         PagedResponse<SessionResponse> sessions = sessionService.getUserSessions(userId, page, size);
         return ResponseEntity.ok(sessions);
     }
+
+    @GetMapping("/{sessionId}/user/{userId}")
+    @Operation(summary = "Get a specific session", description = "Retrieves a specific chat session by ID for a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Session retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Session not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<SessionResponse> getSession(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "User ID") @PathVariable String userId) {
+        log.info("Retrieving session: {} for user: {}", sessionId, userId);
+        SessionResponse session = sessionService.getSession(sessionId, userId);
+        return ResponseEntity.ok(session);
+    }
 }
