@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudjune.ragchatbotservice.data.dtos.AddMessageRequest;
 import org.cloudjune.ragchatbotservice.data.dtos.MessageResponse;
+import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
 import org.cloudjune.ragchatbotservice.services.ChatMessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +53,22 @@ public class ChatMessageController {
             @Parameter(description = "Session ID") @PathVariable Long sessionId) {
         log.info("Retrieving messages for session: {}", sessionId);
         List<MessageResponse> messages = messageService.getSessionMessages(sessionId);
+        return ResponseEntity.ok(messages);
+    }
+
+    @GetMapping("/session/{sessionId}/paginated")
+    @Operation(summary = "Get paginated messages for a session", description = "Retrieves paginated messages for a specific chat session")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Messages retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid API key"),
+            @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+    })
+    public ResponseEntity<PagedResponse<MessageResponse>> getSessionMessagesPaginated(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size) {
+        log.info("Retrieving paginated messages for session: {}, page: {}, size: {}", sessionId, page, size);
+        PagedResponse<MessageResponse> messages = messageService.getSessionMessages(sessionId, page, size);
         return ResponseEntity.ok(messages);
     }
 }

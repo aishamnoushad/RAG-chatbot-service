@@ -5,12 +5,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudjune.ragchatbotservice.data.dtos.AddMessageRequest;
 import org.cloudjune.ragchatbotservice.data.dtos.MessageResponse;
+import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
 import org.cloudjune.ragchatbotservice.data.entities.ChatMessage;
 import org.cloudjune.ragchatbotservice.data.entities.ChatSession;
 import org.cloudjune.ragchatbotservice.data.mapper.ChatMessageMapper;
 import org.cloudjune.ragchatbotservice.data.repositories.ChatMessageRepository;
 import org.cloudjune.ragchatbotservice.data.repositories.ChatSessionRepository;
 import org.cloudjune.ragchatbotservice.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,5 +58,27 @@ public class ChatMessageService {
         return messages.stream()
                 .map(messageMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<MessageResponse> getSessionMessages(Long sessionId, int page, int size) {
+        log.info("Retrieving paginated messages for session: {}, page: {}, size: {}", sessionId, page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ChatMessage> messagePage = messageRepository.findByChatSessionIdOrderByCreatedAtAsc(sessionId, pageable);
+
+        List<MessageResponse> content = messagePage.getContent().stream()
+                .map(messageMapper::toDto)
+                .collect(Collectors.toList());
+
+        return PagedResponse.<MessageResponse>builder()
+                .content(content)
+                .page(messagePage.getNumber())
+                .size(messagePage.getSize())
+                .totalElements(messagePage.getTotalElements())
+                .totalPages(messagePage.getTotalPages())
+                .first(messagePage.isFirst())
+                .last(messagePage.isLast())
+                .build();
     }
 }
