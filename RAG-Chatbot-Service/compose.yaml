@@ -1,22 +1,64 @@
+version: '3.9'
+
 services:
   postgres:
-    image: 'postgres:latest'
-    # These environment variables are applied ONLY on first init (when the data dir is empty)
-    # If you change them later, run: docker compose down -v  (to remove the volume) and then up again
+    image: 'postgres:16-alpine'
+    container_name: rag_postgres
     environment:
-      - 'POSTGRES_DB=rag-chat-db'
-      - 'POSTGRES_USER=raguser'
-      - 'POSTGRES_PASSWORD=rag@123'
+      POSTGRES_DB: ${POSTGRES_DB:rag-chat-db}
+      POSTGRES_USER: ${POSTGRES_USER:raguser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:rag@123}
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U raguser -d rag-chat-db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 10
     restart: unless-stopped
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_chat_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Application envs
+      SERVER_PORT: ${SERVER_PORT:-8087}
+      API_KEY: ${API_KEY:-your-secure-api-key-here}
+      RATE_LIMIT_REQUESTS_PER_MINUTE: ${RATE_LIMIT_REQUESTS_PER_MINUTE:-60}
+      SPRING_PROFILES_ACTIVE: docker
+      # Database (point to the postgres service hostname)
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:rag-chat-db}
+      DB_USERNAME: ${POSTGRES_USER:raguser}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:rag@123}
+      # Flyway can be disabled for troubleshooting
+      FLYWAY_ENABLED: ${FLYWAY_ENABLED:true}
+      # Ensure Spring Boot does not try to run docker-compose itself
+      ENABLE_DOCKER_COMPOSE: 'false'
+    ports:
+      - '${APP_PORT:-8087}:8087'
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: rag_pgadmin
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123}
+    ports:
+      - '${PGADMIN_PORT:-5050}:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  pgadmin_data:

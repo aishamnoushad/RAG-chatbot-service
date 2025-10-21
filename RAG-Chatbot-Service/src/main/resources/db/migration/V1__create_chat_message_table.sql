@@ -1,9 +1,8 @@
-
-CREATE TABLE chat_message (
+CREATE TABLE chat_sessions (
                               id SERIAL PRIMARY KEY,
-                              session_id INT NOT NULL REFERENCES chat_session(id) ON DELETE CASCADE,
-                              sender VARCHAR(50) NOT NULL,
-                              content TEXT NOT NULL,
-                              context TEXT,
-                              created_at TIMESTAMP NOT NULL DEFAULT now()
+                              user_id VARCHAR(255) NOT NULL,
+                              title VARCHAR(255) NOT NULL,
+                              is_favorite BOOLEAN DEFAULT FALSE,
+                              created_at TIMESTAMP NOT NULL DEFAULT now(),
+                              updated_at TIMESTAMP NOT NULL DEFAULT now()
 );

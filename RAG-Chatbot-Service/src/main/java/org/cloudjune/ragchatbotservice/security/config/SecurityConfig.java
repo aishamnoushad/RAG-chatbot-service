@@ -31,7 +31,19 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/actuator/health", "/actuator/info", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers( "/actuator/health",
+                        "/actuator/info",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/swagger-resources",
+                        "/webjars/**",
+                        "/configuration/ui",
+                        "/configuration/security",
+                        "/v3/api-docs",
+                        "/v3/api-docs/swagger-config",
+                        "/health/db").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
