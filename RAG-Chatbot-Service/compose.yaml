@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   postgres:
-    image: 'postgres:16-alpine'
+    image: 'postgres:latest'
     container_name: rag_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:rag-chat-db}
@@ -40,7 +40,7 @@ services:
       # Flyway can be disabled for troubleshooting
       FLYWAY_ENABLED: ${FLYWAY_ENABLED:true}
       # Ensure Spring Boot does not try to run docker-compose itself
-      ENABLE_DOCKER_COMPOSE: 'false'
+      ENABLE_DOCKER_COMPOSE: 'true'
     ports:
       - '${APP_PORT:-8087}:8087'
     restart: unless-stopped
