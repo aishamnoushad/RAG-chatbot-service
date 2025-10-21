@@ -11,9 +11,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
 @Component
@@ -22,6 +24,30 @@ import java.util.Collections;
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     
     private final ApiKeyService apiKeyService;
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private final String[] excludedPatterns = {
+            "/actuator/health",
+            "/actuator/info",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs/**",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/v3/api-docs",
+            "/v3/api-docs/swagger-config",
+            "/health/db"
+    };
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+
+        return Arrays.stream(excludedPatterns)
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
