@@ -3,6 +3,7 @@ package org.cloudjune.ragchatbotservice.services;
 import jakarta.validation.Valid;
 import org.cloudjune.ragchatbotservice.data.dtos.PagedResponse;
 import org.cloudjune.ragchatbotservice.data.dtos.UpdateSessionRequest;
+import org.cloudjune.ragchatbotservice.exception.BadRequestException;
 import org.cloudjune.ragchatbotservice.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,7 @@ public class ChatSessionService {
 
     private final ChatSessionRepository sessionRepository;
     private final ChatSessionMapper sessionMapper;
+    private final ChatMessageService messageService;
 
     public SessionResponse createSession(CreateSessionRequest request) {
         log.info("Creating new chat session for user: {}", request.getUserId());
@@ -79,10 +81,23 @@ public class ChatSessionService {
 
     @Transactional(readOnly = true)
     public SessionResponse getSession(Long sessionId, String userId) {
-        log.info("Retrieving session: {} for user: {}", sessionId, userId);
+        ChatSession session = null;
+        if(sessionId == null || userId == null){
+            throw new BadRequestException("Session Id must be provided");
+        }
+        else if(userId == null || userId.isEmpty()){
 
-        ChatSession session = sessionRepository.findByIdAndUserId(sessionId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
+            log.info("Retrieving session with id : {}", sessionId);
+             session = sessionRepository.findById(sessionId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
+        }else{
+            log.info("Retrieving session: {} for user: {}", sessionId, userId);
+
+
+             session = sessionRepository.findByIdAndUserId(sessionId, userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId + " for user: " + userId));
+        }
+
 
         return sessionMapper.toDto(session);
     }
@@ -90,8 +105,21 @@ public class ChatSessionService {
     public SessionResponse updateSession(Long sessionId, String userId, UpdateSessionRequest request) {
         log.info("Updating session: {} for user: {}", sessionId, userId);
 
-        ChatSession session = sessionRepository.findByIdAndUserId(sessionId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
+        ChatSession session = null;
+        if(sessionId == null || userId == null){
+            throw new BadRequestException("Session Id must be provided");
+        }
+        else if(userId == null || userId.isEmpty()){
+            log.info("Retrieving session with id : {}", sessionId);
+            session = sessionRepository.findById(sessionId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId));
+        }else{
+            log.info("Retrieving session: {} for user: {}", sessionId, userId);
+
+            session = sessionRepository.findByIdAndUserId(sessionId, userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Session not found with id: " + sessionId + " for user: " + userId));
+        }
+
 
         if (request.getTitle() != null) {
             session.setTitle(request.getTitle());
@@ -108,13 +136,32 @@ public class ChatSessionService {
     }
 
     public void deleteSession(Long sessionId, String userId) {
-        log.info("Deleting session: {} for user: {}", sessionId, userId);
 
-        if (!sessionRepository.existsByIdAndUserId(sessionId, userId)) {
-            throw new ResourceNotFoundException("Session not found with id: " + sessionId);
+        if(sessionId == null || userId == null){
+            throw new BadRequestException("Session Id must be provided");
+        }
+        else if(userId == null || userId.isEmpty()){
+            log.info("Deleting session: {} ", sessionId);
+
+            if (!sessionRepository.existsById(sessionId)) {
+                throw new ResourceNotFoundException("Session not found with id: " + sessionId);
+            }
+            messageService.deleteSessionMessages(sessionId);
+            sessionRepository.deleteById(sessionId);
+            log.info("Deleted session: {}", sessionId);
+
+        }else{
+            log.info("Deleting session: {} for user: {}", sessionId, userId);
+
+            if (!sessionRepository.existsByIdAndUserId(sessionId, userId)) {
+                throw new ResourceNotFoundException("Session not found with id: " + sessionId);
+            }
+            messageService.deleteSessionMessages(sessionId);
+            sessionRepository.deleteByIdAndUserId(sessionId, userId);
+            log.info("Deleted session: {}", sessionId);
         }
 
-        sessionRepository.deleteByIdAndUserId(sessionId, userId);
-        log.info("Deleted session: {}", sessionId);
+
+
     }
 }

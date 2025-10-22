@@ -106,7 +106,7 @@ public class ChatMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    @DeleteMapping("/{sessionId}/user/{userId}")
+    @DeleteMapping("/{sessionId}")
     @Operation(summary = "Delete a session", description = "Deletes a chat session and all its messages")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Session deleted successfully"),
@@ -116,7 +116,7 @@ public class ChatMessageController {
     })
     public ResponseEntity<Void> deleteMessages(
             @Parameter(description = "Session ID") @PathVariable Long sessionId,
-            @Parameter(description = "User ID") @PathVariable String userId) {
+            @Parameter(description = "Session ID") @RequestParam(required = false)  String userId) {
         log.info("Deleting session: {} for user: {}", sessionId, userId);
         messageService.deleteMessage(sessionId, userId);
         return ResponseEntity.noContent().build();
