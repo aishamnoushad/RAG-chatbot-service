@@ -150,8 +150,6 @@ All API endpoints require the `X-API-Key` header with a valid API key.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/actuator/health` | Application health status |
-| `GET` | `/actuator/info` | Application information |
-| `GET` | `/actuator/env` | Environment properties |
 
 
 ## 🔐 Security
