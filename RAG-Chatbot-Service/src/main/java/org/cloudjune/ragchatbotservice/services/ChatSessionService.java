@@ -82,7 +82,7 @@ public class ChatSessionService {
     @Transactional(readOnly = true)
     public SessionResponse getSession(Long sessionId, String userId) {
         ChatSession session = null;
-        if(sessionId == null || userId == null){
+        if(sessionId == null && userId == null){
             throw new BadRequestException("Session Id must be provided");
         }
         else if(userId == null || userId.isEmpty()){
@@ -106,7 +106,7 @@ public class ChatSessionService {
         log.info("Updating session: {} for user: {}", sessionId, userId);
 
         ChatSession session = null;
-        if(sessionId == null || userId == null){
+        if(sessionId == null && userId == null){
             throw new BadRequestException("Session Id must be provided");
         }
         else if(userId == null || userId.isEmpty()){
@@ -137,7 +137,7 @@ public class ChatSessionService {
 
     public void deleteSession(Long sessionId, String userId) {
 
-        if(sessionId == null || userId == null){
+        if(sessionId == null && userId == null){
             throw new BadRequestException("Session Id must be provided");
         }
         else if(userId == null || userId.isEmpty()){

@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,12 +52,16 @@ public class ApiKeyAuthenticationFilterTest {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse res = mock(HttpServletResponse.class);
         FilterChain chain = mock(FilterChain.class);
+        PrintWriter writer = mock(PrintWriter.class);
+        
         given(req.getServletPath()).willReturn("/api/messages");
         given(req.getHeader("X-API-Key")).willReturn(null);
+        given(res.getWriter()).willReturn(writer);
 
         filter.doFilter(req, res, chain);
 
         verify(res).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(writer).write("{\"error\":\"API key is required\"}");
         verify(chain, never()).doFilter(any(), any());
     }
 
@@ -65,13 +70,17 @@ public class ApiKeyAuthenticationFilterTest {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse res = mock(HttpServletResponse.class);
         FilterChain chain = mock(FilterChain.class);
+        PrintWriter writer = mock(PrintWriter.class);
+        
         given(req.getServletPath()).willReturn("/api/messages");
         given(req.getHeader("X-API-Key")).willReturn("bad-key");
         given(apiKeyService.isValidApiKey("bad-key")).willReturn(false);
+        given(res.getWriter()).willReturn(writer);
 
         filter.doFilter(req, res, chain);
 
         verify(res).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(writer).write("{\"error\":\"Invalid API key\"}");
         verify(chain, never()).doFilter(any(), any());
     }
 

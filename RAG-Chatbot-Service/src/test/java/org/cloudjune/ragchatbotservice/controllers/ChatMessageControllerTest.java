@@ -9,7 +9,6 @@ import org.cloudjune.ragchatbotservice.data.enums.MessageSender;
 import org.cloudjune.ragchatbotservice.services.ChatMessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -19,7 +18,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
 class ChatMessageControllerTest {
 
     private ChatMessageService messageService;

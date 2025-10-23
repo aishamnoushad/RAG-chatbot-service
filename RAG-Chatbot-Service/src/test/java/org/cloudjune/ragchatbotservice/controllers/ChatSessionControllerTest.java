@@ -6,7 +6,6 @@ import org.cloudjune.ragchatbotservice.data.dtos.*;
 import org.cloudjune.ragchatbotservice.services.ChatSessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -16,7 +15,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
 class ChatSessionControllerTest {
 
     private ChatSessionService sessionService;
